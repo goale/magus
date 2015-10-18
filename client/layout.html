@@ -1,0 +1,9 @@
+<template name="layout">
+    <div class="container">
+        {{#if loggingIn}}
+            Loading...
+        {{else}}
+            {{> yield}}
+        {{/if}}
+    </div>
+</template>
