@@ -1,6 +1,13 @@
 Template.userList.helpers({
     'users': function() {
-        return Meteor.users.find({ _id: { $not: Meteor.userId() } });
+        var myId = Meteor.userId(),
+            cantPlayAgainst = [myId];
+
+        Games.find({ inProgress: true }).forEach(function(game) {
+            cantPlayAgainst.push(Utils.getOpposite(game));
+        });
+
+        return Meteor.users.find({ _id: { $not: { $in: cantPlayAgainst } } });
     }
 });
 

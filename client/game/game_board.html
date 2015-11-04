@@ -1,0 +1,22 @@
+<template name="gameBoard">
+    <div class="player">
+        You<br>
+        HP: <progress value="{{player.health}}" max="100"></progress>
+        {{#each elements}}
+            <button class="element-btn {{this.value}}" name="button">{{this.value}}</button>
+        {{/each}}
+        {{#if playerAttacked}}
+            You attacked with {{player.currentTurn}}
+        {{/if}}
+    </div>
+    <div class="opponent">
+        Opponent<br>
+        HP: <progress value="{{opponent.health}}" max="100"></progress>
+        {{#if opponentAttacked}}
+            Opponent made a turn
+        {{/if}}
+    </div>
+    {{#if turnsAreMade}}
+        Calculating game result
+    {{/if}}
+</template>
