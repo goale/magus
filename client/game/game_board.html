@@ -1,9 +1,16 @@
 <template name="gameBoard">
+    {{#if gameIsCompleted}}
+        {{#if isWinner}}
+            <h1>You win!</h1>
+        {{else}}
+            <h1>You lose!</h1>
+        {{/if}}
+    {{/if}}
     <div class="player">
         You<br>
         HP: <progress value="{{player.health}}" max="100"></progress>
         {{#each elements}}
-            <button class="element-btn {{this.value}}" name="button">{{this.value}}</button>
+            <button class="element-btn {{element}}" name="button">{{element}}</button>
         {{/each}}
         {{#if playerAttacked}}
             You attacked with {{player.currentTurn}}
@@ -19,4 +26,9 @@
     {{#if turnsAreMade}}
         Calculating game result
     {{/if}}
+    <div class="history">
+        {{#each logs}}
+            <p>Удар: {{element}}, Урон: {{damage}}, Игрок: {{playerId}}</p>
+        {{/each}}
+    </div>
 </template>

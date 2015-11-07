@@ -1,13 +1,6 @@
 Template.gameBoard.helpers({
     elements: function() {
-        var elements = Elements.findOne().elements,
-            result = [];
-
-        elements.map(function(el) {
-            result.push({ value: el });
-        });
-
-        return result;
+        return Elements.find();
     },
     player: function() {
         return this.info[Meteor.userId()];
@@ -16,18 +9,29 @@ Template.gameBoard.helpers({
         return _.indexOf(this.turnMade, Meteor.userId()) !== -1;
     },
     opponent: function() {
-        return this.info[Utils.getOpposite(this)];
+        return this.info[Utils.getOpponent(this)];
     },
     opponentAttacked: function() {
-        return _.indexOf(this.turnMade, Utils.getOpposite(this)) !== -1;
+        return _.indexOf(this.turnMade, Utils.getOpponent(this)) !== -1;
     },
     turnsAreMade: function() {
         return this.turnMade.length === 2;
+    },
+    gameIsCompleted: function() {
+        return !this.inProgress && this.winner !== null
+    },
+    isWinner: function() {
+        return this.winner === Meteor.userId();
+    },
+    logs: function() {
+        return GameLogs.find({ gameId: this._id }, { sort: { added: -1 } });
     }
 });
 
 Template.gameBoard.events({
     'click .element-btn': function(evt, tmpl) {
-        Meteor.call('attack', tmpl.data, this.value);
+        if (tmpl.data.inProgress) {
+            Meteor.call('attack', tmpl.data, this.element);
+        }
     }
 });

@@ -9,3 +9,7 @@ Meteor.publish('users', function() {
 Meteor.publish('elements', function() {
     return Elements.find();
 });
+
+Meteor.publish('gameLogs', function() {
+    return GameLogs.find();
+});

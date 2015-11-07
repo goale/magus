@@ -4,7 +4,7 @@ Template.userList.helpers({
             cantPlayAgainst = [myId];
 
         Games.find({ inProgress: true }).forEach(function(game) {
-            cantPlayAgainst.push(Utils.getOpposite(game));
+            cantPlayAgainst.push(Utils.getOpponent(game));
         });
 
         return Meteor.users.find({ _id: { $not: { $in: cantPlayAgainst } } });
