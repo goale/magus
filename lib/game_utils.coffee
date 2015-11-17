@@ -1,4 +1,3 @@
-class GameUtils
+class @GameUtils
     @getOpponent: (game) ->
-        _.without game.players, Meteor.userId
-            .shift()
+        _.without(game.players, Meteor.userId()).shift()

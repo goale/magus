@@ -2,7 +2,7 @@ class GameLogic
     gameId: 0
 
     makeTurn: (game, attack) ->
-        userId = Meteor.userId
+        userId = Meteor.userId()
 
         if not game.turnMade?
             game.turnMade = []
@@ -115,4 +115,4 @@ class GameLogic
 #     return log;
 # };
 
-Magus = new GameLogic();
+@Magus = new GameLogic

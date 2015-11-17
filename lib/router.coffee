@@ -11,12 +11,12 @@ Router.route '/login', ->
 
 Router.route '/games/:_id', ->
     if @ready()
-        game = Games.findOne { _id: @params._id }
-        @render 'gameBoard', { data: game }
+        game = Games.findOne _id: @params._id
+        @render 'gameBoard', data: game
 
-Router.onBeforeAction (->
-   if not Meteor.userId()
-       @redirect '/login'
-   else
-       @next()
-), { except: 'login' }
+Router.onBeforeAction ->
+        if not Meteor.userId()
+            @redirect '/login'
+        else
+            @next()
+    , except: 'login'

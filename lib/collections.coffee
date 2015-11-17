@@ -28,7 +28,3 @@ if Meteor.isServer
 
             _.each buffs, (el) ->
                 Buffs.insert el
-
-        createGame: (opponentId) ->
-            game = GameFactory.createGame [Meteor.userId, opponentId]
-            Games.insert game

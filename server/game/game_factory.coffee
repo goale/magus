@@ -1,4 +1,4 @@
-class GameFactory
+class @GameFactory
 
     @createGame: (ids) ->
         players = new Object
@@ -13,7 +13,7 @@ class GameFactory
             inProgress: yes
             started: new Date
 
-    @initPlayer: (id) ->
+    @initPlayer: () ->
         player =
             health: 100
 
