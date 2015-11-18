@@ -39,6 +39,7 @@ class GameLogic
     matchTurns: (playerOne, playerTwo) ->
         field = {}
 
+        # players made the same turn
         if playerOne.currentTurn is playerTwo.currentTurn
             GameFactory.flushTurns @gameId, playerOne.id, playerTwo.id, {}
             return
@@ -46,11 +47,20 @@ class GameLogic
         turnOne = Elements.findOne { element: playerOne.currentTurn }
         turnTwo = Elements.findOne { element: playerTwo.currentTurn }
 
+        # Player one hits player two
         if turnTwo.element in turnOne.wins
             playerTwo.health -= turnOne.damage
+            buff = BuffFactory.new turnOne.element
+            buff.setGame @gameId
+            buff.setPlayer(if buff.on is 'enemy' then playerTwo.id else playerOne.id)
+            buff.cast()
             field["info.#{playerTwo.id}.health"] = playerTwo.health
         else
             playerOne.health -= turnTwo.damage
+            buff = BuffFactory.new turnTwo.element
+            buff.setGame @gameId
+            buff.setPlayer(if buff.on is 'enemy' then playerOne.id else playerTwo.id)
+            buff.cast()
             field["info.#{playerOne.id}.health"] = playerOne.health
 
         if playerOne.health <= 0 or playerTwo.health <= 0
