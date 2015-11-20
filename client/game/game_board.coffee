@@ -1,18 +1,21 @@
 Template.gameBoard.helpers
     elements: ->
-        Elements.find()
+        Meteor.call 'getElements', (err, result) ->
+            Session.set 'elements', result
+
+        return Session.get 'elements' or ''
 
     player: ->
-        @info[Meteor.userId()]
-
-    playerAttacked: ->
-        attacked = Meteor.userId() in @turnMade if @turnMade?
+        @board[Meteor.userId()]
 
     opponent: ->
-        @info[GameUtils.getOpponent(@)]
+        @board[GameUtils.getOpponent(@)]
+
+    playerAttacked: ->
+        @turns[Meteor.userId()]
 
     opponentAttacked: ->
-        attacked = GameUtils.getOpponent(@) in @turnMade if @turnMade?
+        @turns[GameUtils.getOpponent(@)]?
 
     turnsAreMade: ->
         @turnMade.length is 2 if @turnMade?

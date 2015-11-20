@@ -4,15 +4,15 @@ Meteor.methods
 
         if turns is 2
             Meteor.setTimeout ->
-                    Magus.calculateTurnsResult game
+                    Magus.calculateTurnsResult game._id
                 , 3000
 
-    update: (game) ->
-        Games.update game._id, game
-
-    updateField: (gameId, field) ->
-        Games.update gameId, { $set: field }
+    updateTurns: (gameId, turns) ->
+        Games.update gameId, { $set: { turns: turns } }
 
     createGame: (opponentId) ->
-        game = GameFactory.createGame [Meteor.userId(), opponentId]
+        game = GameFactory.create [Meteor.userId(), opponentId]
         Games.insert game
+
+    updateGame: (game) ->
+        Games.update game._id, game

@@ -10,10 +10,10 @@
         You<br>
         HP: <progress value="{{player.health}}" max="100"></progress>
         {{#each elements}}
-            <button class="element-btn {{element}}" name="button">{{element}}</button>
+            <button class="element-btn {{element}}" name="button">{{name}}</button>
         {{/each}}
         {{#if playerAttacked}}
-            You attacked with {{player.currentTurn}}
+            You attacked with {{playerAttacked.turn}}
         {{/if}}
     </div>
     <div class="opponent">
