@@ -1,118 +1,80 @@
 class GameLogic
-    gameId: 0
-
+    ###
+    # add user turn info and return number of turns
+    # @param {Object} game
+    # @param {string} attack element
+    # @return {int} number of turns
+    ###
     makeTurn: (game, attack) ->
         userId = Meteor.userId()
 
-        if not game.turnMade?
-            game.turnMade = []
+        # player already made a turn
+        if game.turns[userId]?
+            return 0
 
-        if userId in game.turnMade
-            turnLen = game.turnMade.length
-            return
+        game.turns[userId] = { _id: userId, element: attack }
 
-        game.info[userId].currentTurn = attack
+        Meteor.call 'updateTurns', game._id, game.turns
 
-        game.turnMade.push userId
+        return _.size game.turns
 
-        Meteor.call 'update', game
+    ###
+    # apply buffs and update player stats
+    # @param {Object} game
+    # @param {boolean} if true then apply instant buffs
+    # @return {Object} game modified with buffs logic
+    ###
+    applyBuffs: (game, applyInstant = no) ->
+        _.each game.board, (stats, player) ->
+            if stats.buff?
+                buff = BuffLogic.new stats.buff
 
-        turnLen = game.turnMade.length
+                if (applyInstant and buff.instant) or (not applyInstant and not buff.instant)
+                    game = BuffLogic.apply game, player
+                    Meteor.call 'updateBoard', game._id, game.board
 
+        return game
+
+    ###
+    # calculate round result, apply buffs, and choose a winner
+    # @param {Object} game
+    ###
     calculateTurnsResult: (game) ->
-        @gameId = game._id
-        @comparePlayers game.info
+        # get element stats for turns
+        _.each game.turns, (turn, player) ->
+            game.turns[player].turn = ElementFactory.new turn.element, player
+        # apply non-instant buffs
+        game = @applyBuffs game
+        result = ElementFactory.match game
 
-    comparePlayers: (players) ->
-        playerIds = Object.keys players
-
-        return if playerIds.length isnt 2
-
-        playerOne = players[playerIds[0]]
-        playerTwo = players[playerIds[1]]
-
-        playerOne.id = playerIds[0]
-        playerTwo.id = playerIds[1]
-
-        @matchTurns playerOne, playerTwo
-
-    matchTurns: (playerOne, playerTwo) ->
-        field = {}
-
-        if playerOne.currentTurn is playerTwo.currentTurn
-            GameFactory.flushTurns @gameId, playerOne.id, playerTwo.id, {}
-            return
-
-        turnOne = Elements.findOne { element: playerOne.currentTurn }
-        turnTwo = Elements.findOne { element: playerTwo.currentTurn }
-
-        if turnTwo.element in turnOne.wins
-            playerTwo.health -= turnOne.damage
-            field["info.#{playerTwo.id}.health"] = playerTwo.health
+        if result.tie? and result.tie
+            # TODO: add to log tie result
         else
-            playerOne.health -= turnTwo.damage
-            field["info.#{playerOne.id}.health"] = playerOne.health
+            # update health
+            game.board[result.enemy].health -= result.damage
+            # set buffs
+            if result.isCritical
+                if result.buff is 'self'
+                    game.board[result.player].buff = result.element
+                else
+                    game.board[result.enemy].buff = result.element
+            # choose a winner
+            if game.board[result.enemy].health <= 0
+                game.inProgress = no
+                game.finished = new Date
+                game.winner = result.player
+            # log result
 
-        if playerOne.health <= 0 or playerTwo.health <= 0
-            field.inProgress = no
-            field.finished = new Date
-            field.winner = if playerOne.health <= 0 then playerTwo.id else playerOne.id
+        # flush turns
+        game.turns = {}
 
-        GameFactory.flushTurns @gameId, playerOne.id, playerTwo.id, field
+        Meteor.setTimeout ->
+                Meteor.call 'updateGame', game
+            , 1000
 
-@Magus = new GameLogic
-# GameLogic.prototype.matchTurns = function(playerOne, playerTwo) {
-#     var log = {};
-#
-#     if (playerOne.currentTurn === playerTwo.currentTurn) {
-#         log = this.log(false, playerOne.currentTurn, true);
-#         GameLogs.insert(log);
-#         GameFactory.flushTurns(this.gameId, playerOne.id, playerTwo.id, {});
-#         return true;
-#     }
-#
-#     var turnOne = Elements.findOne({ element: playerOne.currentTurn }),
-#         turnTwo = Elements.findOne({ element: playerTwo.currentTurn }),
-#         field = {};
-#
-#     // playerOne makes a hit
-#     if (_.indexOf(turnOne.wins, turnTwo.element) !== -1) {
-#         playerTwo.health -= turnOne.damage;
-#         field["info." + playerTwo.id + ".health"] = playerTwo.health;
-#         log = this.log(playerOne.id, turnOne);
-#     } else {
-#         playerOne.health -= turnTwo.damage;
-#         field["info." + playerOne.id + ".health"] = playerOne.health;
-#         log = this.log(playerTwo.id, turnTwo);
-#     }
-#
-#     // If one of the players dies, complete the game and mark a winner
-#     if (playerOne.health <= 0 || playerTwo.health <= 0) {
-#         field.inProgress = false;
-#         field.finished = new Date();
-#         field.winner = playerOne.health <= 0 ? playerTwo.id : playerOne.id;
-#
-#         // TODO: update player winning score
-#     }
-#
-#     GameLogs.insert(log);
-#
-#     GameFactory.flushTurns(this.gameId, playerOne.id, playerTwo.id, field);
-# };
-
-# GameLogic.prototype.log = function(playerId, turn, isTie = false) {
-#     var log = { gameId: this.gameId, added: new Date() };
-#
-#     log.element = turn.element;
-#
-#     if (isTie) {
-#         log.text = 'Ничья'
-#     } else {
-#         log.damage = turn.damage;
-#         log.playerId = playerId;
-#     }
-#
-#     return log;
-# };
+        # apply instant buffs with 2 seconds delay
+        Meteor.setTimeout =>
+                @applyBuffs game, yes
+            , 3000
 
 @Magus = new GameLogic

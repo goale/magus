@@ -1,25 +1,20 @@
 class @GameFactory
 
-    @createGame: (ids) ->
-        players = new Object
+    @create: (ids) ->
+        players = {}
 
         ids.forEach (id) =>
-            players[id] = @initPlayer()
+            players[id] = @initializePlayer(id)
 
         game =
             players: ids
-            info: players
-            turnCompleted: no
+            turns: {}
             inProgress: yes
+            board: players
             started: new Date
 
-    @initPlayer: () ->
+    @initializePlayer: (id) ->
         player =
+            _id: id
             health: 100
-
-    @flushTurns: (gameId, playerOne, playerTwo, fields) ->
-        fields.turnMade = []
-        fields["info.#{playerOne}.currentTurn"] = null
-        fields["info.#{playerTwo}.currentTurn"] = null
-
-        Meteor.call 'updateField', gameId, fields
+            buff: null
