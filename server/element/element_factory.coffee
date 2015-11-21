@@ -4,7 +4,10 @@ class @ElementFactory
     @initialize: ->
         return [
             { element: 'fire', name: 'Огонь' }
+            { element: 'water', name: 'Вода' }
             { element: 'ice', name: 'Лёд' }
+            { element: 'earth', name: 'Земля' }
+            { element: 'air', name: 'Воздух' }
         ]
 
     # Creates an Element object based on element type
@@ -12,31 +15,31 @@ class @ElementFactory
     @new: (element, playerId) ->
         switch element
             when 'fire' then el = new FireElement
+            when 'water' then el = new WaterElement
             when 'ice' then el = new IceElement
+            when 'earth' then el = new EarthElement
+            when 'air' then el = new AirElement
 
         el.setPlayer playerId
 
         return el
 
     # Match players turns, calculate damage and decide who is a boss
-    @match: (turns, board) ->
-        if _.size(turns) isnt 2
+    @match: (game) ->
+        if _.size(game.turns) isnt 2
             return
 
-        turns = _.toArray turns
+        turns = _.toArray game.turns
 
         [turnOne, turnTwo] = turns
 
         # it's a tie!
-        if turnOne.turn is turnTwo.turn
+        if turnOne.element is turnTwo.element
             return tie: yes
 
-        elementOne = @new turnOne.turn, turnOne._id
-        elementTwo = @new turnTwo.turn, turnTwo._id
-
         # player one makes a hit
-        if elementTwo.element in elementOne.hits
-            elementOne.hit elementTwo.player
+        if turnTwo.element in turnOne.turn.hits
+            turnOne.turn.hit turnTwo.turn.player
         # player two makes a hit
         else
-            elementTwo.hit elementOne.player
+            turnTwo.turn.hit turnOne.turn.player

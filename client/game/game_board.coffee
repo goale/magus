@@ -17,9 +17,6 @@ Template.gameBoard.helpers
     opponentAttacked: ->
         @turns[GameUtils.getOpponent(@)]?
 
-    turnsAreMade: ->
-        @turnMade.length is 2 if @turnMade?
-
     gameIsCompleted: ->
         completed = not @inProgress and @winner?
 

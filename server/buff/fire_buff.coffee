@@ -9,3 +9,5 @@ class @FireBuff extends Buff
     type: 'attack'
 
     on: 'enemy'
+
+    instant: yes

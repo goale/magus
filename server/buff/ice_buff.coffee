@@ -1,9 +1,13 @@
 class @IceBuff extends Buff
 
+    element: 'ice'
+
     name: 'Ледяные осколки'
 
-    power: 7
+    power: 3
 
-    type: 'attack'
+    type: 'power'
 
-    on: 'enemy'
+    on: 'self'
+
+    instant: no

@@ -13,8 +13,10 @@
             <button class="element-btn {{element}}" name="button">{{name}}</button>
         {{/each}}
         {{#if playerAttacked}}
-            You attacked with {{playerAttacked.turn}}
+            You attacked with {{playerAttacked.element}}
         {{/if}}
+        <br>
+        {{player.buff}}
     </div>
     <div class="opponent">
         Opponent<br>
@@ -22,10 +24,9 @@
         {{#if opponentAttacked}}
             Opponent made a turn
         {{/if}}
+        <br>
+        {{opponent.buff}}
     </div>
-    {{#if turnsAreMade}}
-        Calculating game result
-    {{/if}}
     <div class="history">
         {{#each logs}}
             <p>Удар: {{element}}, Урон: {{damage}}, Игрок: {{playerId}}</p>
