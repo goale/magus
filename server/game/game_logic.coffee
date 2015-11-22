@@ -14,6 +14,8 @@ class GameLogic
 
         game.turns[userId] = { _id: userId, element: attack }
 
+        # TODO: add to log
+
         Meteor.call 'updateTurns', game._id, game.turns
 
         return _.size game.turns
@@ -40,6 +42,7 @@ class GameLogic
     # @param {Object} game
     ###
     calculateTurnsResult: (game) ->
+        logs = []
         # get element stats for turns
         _.each game.turns, (turn, player) ->
             game.turns[player].turn = ElementFactory.new turn.element, player
@@ -48,7 +51,7 @@ class GameLogic
         result = ElementFactory.match game
 
         if result.tie? and result.tie
-            # TODO: add to log tie result
+            logs.push(GameLog.add game, 'tie', result)
         else
             # update health
             game.board[result.enemy].health -= result.damage
@@ -58,15 +61,22 @@ class GameLogic
                     game.board[result.player].buff = result.element
                 else
                     game.board[result.enemy].buff = result.element
+
+            # log damage
+            logs.push(GameLog.add game, 'damage', result)
+
             # choose a winner
             if game.board[result.enemy].health <= 0
                 game.inProgress = no
                 game.finished = new Date
                 game.winner = result.player
-            # log result
+
+                logs.push(GameLog.add game, 'winner', result)
 
         # flush turns
         game.turns = {}
+
+        game.logs = _.union game.logs, logs
 
         Meteor.setTimeout ->
                 Meteor.call 'updateGame', game

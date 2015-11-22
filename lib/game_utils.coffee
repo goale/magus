@@ -4,3 +4,8 @@ class @GameUtils
         if not playerId then playerId = Meteor.userId()
 
         _.without(game.players, playerId).shift()
+
+    # calculate time elapsed from game starting time
+    @getElapsedTime: (gameStarted) ->
+        # TODO: convert duration to proper format
+        return new Date()
