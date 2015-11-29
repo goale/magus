@@ -26,29 +26,31 @@ class GameLogic
     # @param {boolean} if true then apply instant buffs
     # @return {Object} game modified with buffs logic
     ###
-    applyBuffs: (game, applyInstant = no) ->
+    applyBuffs: (game) ->
+        turns = {}
+
+        _.each game.turns, (turn, player) ->
+            turns[player] = ElementFactory.new turn.element, player
+
         _.each game.board, (stats, player) ->
+            enemy = GameUtils.getOpponent game, player
             if stats.buff?
                 buff = BuffLogic.new stats.buff
+                buff.setGameId game._id
+                turns = buff.apply turns, player, enemy
 
-                if (applyInstant and buff.instant) or (not applyInstant and not buff.instant)
-                    game = BuffLogic.apply game, player
-                    Meteor.call 'updateBoard', game._id, game.board
-
-        return game
+        return turns
 
     ###
     # calculate round result, apply buffs, and choose a winner
     # @param {Object} game
     ###
-    calculateTurnsResult: (game) ->
+    calculateTurnsResult: (gameId, turns) ->
         logs = []
-        # get element stats for turns
-        _.each game.turns, (turn, player) ->
-            game.turns[player].turn = ElementFactory.new turn.element, player
-        # apply non-instant buffs
-        game = @applyBuffs game
-        result = ElementFactory.match game
+
+        game = Games.findOne gameId
+
+        result = ElementFactory.match turns
 
         if result.tie? and result.tie
             logs.push(GameLog.add game, 'tie', result)
@@ -81,10 +83,5 @@ class GameLogic
         Meteor.setTimeout ->
                 Meteor.call 'updateGame', game
             , 1000
-
-        # apply instant buffs with 2 seconds delay
-        Meteor.setTimeout =>
-                @applyBuffs game, yes
-            , 3000
 
 @Magus = new GameLogic
