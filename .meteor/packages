@@ -20,3 +20,4 @@ iron:router
 accounts-password
 coffeescript
 momentjs:moment
+oaf:moment-duration-format

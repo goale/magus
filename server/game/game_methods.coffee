@@ -34,6 +34,14 @@ Meteor.methods
         Games.update gameId, { $set: field }
 
     log: (gameId, log) ->
-        # TODO: write elapsed time instead of date
-        time = new Date()
-        Games.update gameId, { $push: { logs: { time: time, message: log } } }
+        game = Games.findOne gameId
+
+        time = GameUtils.getElapsedTime game.started
+        Games.update gameId, {
+            $push: {
+                logs: {
+                    $each: [{ time: time, message: log }],
+                    $position: 0
+                }
+            }
+        }

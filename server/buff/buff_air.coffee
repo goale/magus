@@ -4,6 +4,8 @@ class @AirBuff extends Buff
 
     name: 'Воздушная атака'
 
+    message: 'почувствовал силу воздушной атаки (шанс критической атаки +0.2)'
+
     power: 0.2
 
     type: 'critical'

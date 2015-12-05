@@ -47,44 +47,34 @@ class GameLogic
     ###
     calculateTurnsResult: (gameId, turns) ->
         Meteor.setTimeout =>
-                result = ElementFactory.match turns
-                @updateStats gameId, result
+                ElementFactory.match turns
             , 2000
 
-
     ###
-    # update turns/game results
+    # prepare game summary and finish game
     # @param {int} gameId
-    # @param {Object} round result
     ###
-    updateStats: (gameId, result) ->
+    finishGame: (gameId) ->
         game = Games.findOne gameId
+        tie = yes
         fields = {}
 
-        if result.tie? and result.tie
-            Meteor.call 'log', gameId, "Никто никого не ударил"
-        else
-            # reduce enemy's health
-            fields["board.#{result.enemy}.health"] = game.board[result.enemy].health - result.damage
+        fields.inProgress = no
+        fields.finished = new Date()
 
-            # set buffs
-            if result.isCritical
-                if result.buff is 'self'
-                    fields["board.#{result.player}.buff"] = result.element
-                else
-                    fields["board.#{result.enemy}.buff"] = result.element
-
-            if fields["board.#{result.enemy}.health"] <= 0
-                fields.inProgress = no
-                fields.finished = new Date
-                fields.winner = result.player
-
-                winner = GameUtils.getNickname result.player
-                Meteor.call 'log', gameId, "#{winner} оказался сильнее и победил"
-
-        # flush turns
-        fields["turns"] = {}
+        _.each game.board, (stats, player) ->
+            if stats.health > 0
+                fields.winner = player
+                tie = no
 
         Meteor.call 'updateFields', gameId, fields
+
+        if tie
+            Meteor.call 'log', gameId, "Ничья! Игроки убили друг друга"
+        else
+            winner = GameUtils.getNickname fields.winner
+            Meteor.call 'log', gameId, "#{winner} оказался сильнее и победил в жесточайшей схватке"
+
+        # TODO: update scoring system
 
 @Magus = new GameLogic

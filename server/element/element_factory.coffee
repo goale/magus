@@ -36,11 +36,15 @@ class @ElementFactory
 
         # it's a tie!
         if turnOne.element is turnTwo.element
-            return tie: yes
+            Meteor.call 'log', turnOne.gameId, "Никто никого не ударил"
 
-        # player one makes a hit
-        if turnTwo.element in turnOne.hits
-            turnOne.hit turnTwo.player
-        # player two makes a hit
         else
-            turnTwo.hit turnOne.player
+            # player one makes a hit
+            if turnTwo.element in turnOne.hits
+                turnOne.hit turnTwo.player
+            # player two makes a hit
+            else
+                turnTwo.hit turnOne.player
+
+        # flush turns
+        Meteor.call 'updateFields', turnOne.gameId, { turns: {} }

@@ -33,6 +33,4 @@ class @Buff
     getLogMessage: (player) ->
         player = GameUtils.getNickname player
 
-        if @on is 'self' then action = 'применил' else action = 'почувствовал на себе'
-
-        return "#{player} #{action} #{@name}"
+        return "#{player} #{@message}"

@@ -11,5 +11,6 @@ class @GameUtils
 
     # calculate time elapsed from game starting time
     @getElapsedTime: (gameStarted) ->
-        # TODO: convert duration to proper format
-        return new Date()
+        diff = new Date() - gameStarted
+
+        return moment.duration(diff).format('HH:mm:ss', { trim: false })
