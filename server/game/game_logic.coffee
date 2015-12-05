@@ -14,6 +14,8 @@ class GameLogic
 
         game.turns[userId] = { _id: userId, element: attack }
 
+        # TODO: add to log
+
         Meteor.call 'updateTurns', game._id, game.turns
 
         return _.size game.turns
@@ -24,57 +26,55 @@ class GameLogic
     # @param {boolean} if true then apply instant buffs
     # @return {Object} game modified with buffs logic
     ###
-    applyBuffs: (game, applyInstant = no) ->
+    applyBuffs: (game) ->
+        turns = {}
+
+        _.each game.turns, (turn, player) ->
+            turns[player] = ElementFactory.new turn.element, game._id, player
+
         _.each game.board, (stats, player) ->
+            enemy = GameUtils.getOpponent game, player
             if stats.buff?
                 buff = BuffLogic.new stats.buff
+                buff.setGameId game._id
+                turns = buff.apply turns, player, enemy
 
-                if (applyInstant and buff.instant) or (not applyInstant and not buff.instant)
-                    game = BuffLogic.apply game, player
-                    Meteor.call 'updateBoard', game._id, game.board
-
-        return game
+        return turns
 
     ###
-    # calculate round result, apply buffs, and choose a winner
+    # calculate rutns result and update stats
     # @param {Object} game
     ###
-    calculateTurnsResult: (game) ->
-        # get element stats for turns
-        _.each game.turns, (turn, player) ->
-            game.turns[player].turn = ElementFactory.new turn.element, player
-        # apply non-instant buffs
-        game = @applyBuffs game
-        result = ElementFactory.match game
-
-        if result.tie? and result.tie
-            # TODO: add to log tie result
-        else
-            # update health
-            game.board[result.enemy].health -= result.damage
-            # set buffs
-            if result.isCritical
-                if result.buff is 'self'
-                    game.board[result.player].buff = result.element
-                else
-                    game.board[result.enemy].buff = result.element
-            # choose a winner
-            if game.board[result.enemy].health <= 0
-                game.inProgress = no
-                game.finished = new Date
-                game.winner = result.player
-            # log result
-
-        # flush turns
-        game.turns = {}
-
-        Meteor.setTimeout ->
-                Meteor.call 'updateGame', game
-            , 1000
-
-        # apply instant buffs with 2 seconds delay
+    calculateTurnsResult: (gameId, turns) ->
         Meteor.setTimeout =>
-                @applyBuffs game, yes
-            , 3000
+                ElementFactory.match turns
+            , 2000
+
+    ###
+    # prepare game summary and finish game
+    # @param {int} gameId
+    ###
+    finishGame: (gameId) ->
+        game = Games.findOne gameId
+        tie = yes
+        fields = {}
+
+        fields.inProgress = no
+        fields.finished = new Date()
+
+        _.each game.board, (stats, player) ->
+            if stats.health > 0
+                fields.winner = player
+                tie = no
+
+        Meteor.call 'updateFields', gameId, fields
+
+        if tie
+            Meteor.call 'log', gameId, "Ничья! Игроки убили друг друга"
+        else
+            winner = GameUtils.getNickname fields.winner
+            Meteor.call 'log', gameId, "#{winner} оказался сильнее и победил в жесточайшей схватке"
+
+        # TODO: update scoring system
 
 @Magus = new GameLogic

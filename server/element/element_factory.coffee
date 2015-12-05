@@ -12,7 +12,7 @@ class @ElementFactory
 
     # Creates an Element object based on element type
     # and binds it to player
-    @new: (element, playerId) ->
+    @new: (element, gameId, playerId) ->
         switch element
             when 'fire' then el = new FireElement
             when 'water' then el = new WaterElement
@@ -20,26 +20,31 @@ class @ElementFactory
             when 'earth' then el = new EarthElement
             when 'air' then el = new AirElement
 
+        el.setGame gameId
         el.setPlayer playerId
 
         return el
 
     # Match players turns, calculate damage and decide who is a boss
-    @match: (game) ->
-        if _.size(game.turns) isnt 2
+    @match: (turns) ->
+        if _.size(turns) isnt 2
             return
 
-        turns = _.toArray game.turns
+        turns = _.toArray turns
 
         [turnOne, turnTwo] = turns
 
         # it's a tie!
         if turnOne.element is turnTwo.element
-            return tie: yes
+            Meteor.call 'log', turnOne.gameId, "Никто никого не ударил"
 
-        # player one makes a hit
-        if turnTwo.element in turnOne.turn.hits
-            turnOne.turn.hit turnTwo.turn.player
-        # player two makes a hit
         else
-            turnTwo.turn.hit turnOne.turn.player
+            # player one makes a hit
+            if turnTwo.element in turnOne.hits
+                turnOne.hit turnTwo.player
+            # player two makes a hit
+            else
+                turnTwo.hit turnOne.player
+
+        # flush turns
+        Meteor.call 'updateFields', turnOne.gameId, { turns: {} }

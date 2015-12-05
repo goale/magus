@@ -1,5 +1,10 @@
 class @FireElement extends Element
-    
+
+    messages: [
+        'полыхнул ярким пламенем в лицо',
+        'сжег напалмом'
+    ]
+
     element: 'fire'
 
     name: 'Огонь'

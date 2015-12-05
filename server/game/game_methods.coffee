@@ -9,8 +9,9 @@ Meteor.methods
         # with 2 seconds delay for interactivity
         if turns is 2
             Meteor.setTimeout ->
-                    Magus.calculateTurnsResult game
-                , 2000
+                    result = Magus.applyBuffs game
+                    Magus.calculateTurnsResult game._id, result
+                , 1000
 
     # update player turns when player hits an attack button
     updateTurns: (gameId, turns) ->
@@ -28,3 +29,19 @@ Meteor.methods
     # update game document
     updateGame: (game) ->
         Games.update game._id, game
+
+    updateFields: (gameId, field) ->
+        Games.update gameId, { $set: field }
+
+    log: (gameId, log) ->
+        game = Games.findOne gameId
+
+        time = GameUtils.getElapsedTime game.started
+        Games.update gameId, {
+            $push: {
+                logs: {
+                    $each: [{ time: time, message: log }],
+                    $position: 0
+                }
+            }
+        }

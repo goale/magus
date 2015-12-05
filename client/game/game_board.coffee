@@ -24,7 +24,7 @@ Template.gameBoard.helpers
         isWinner =  @winner is Meteor.userId() if @winner?
 
     logs: ->
-        GameLogs.find { gameId: this._id }, { sort: { added: -1 } }
+        @logs
 
 Template.gameBoard.events
     'click .element-btn': (evt, tmpl) ->

@@ -12,6 +12,7 @@ class @GameFactory
             inProgress: yes
             board: players
             started: new Date
+            logs: []
 
     @initializePlayer: (id) ->
         player =

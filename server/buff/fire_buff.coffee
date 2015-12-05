@@ -4,6 +4,8 @@ class @FireBuff extends Buff
 
     name: 'Ожог'
 
+    message: 'подгорел от ожогов (-5 HP)'
+
     power: 5
 
     type: 'attack'

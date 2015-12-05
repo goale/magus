@@ -19,3 +19,5 @@ ecmascript              # Enable ECMAScript2015+ syntax in app code
 iron:router
 accounts-password
 coffeescript
+momentjs:moment
+oaf:moment-duration-format

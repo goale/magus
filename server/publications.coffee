@@ -5,12 +5,3 @@ Meteor.publish 'games', ->
 
 Meteor.publish 'users', ->
     Meteor.users.find()
-
-Meteor.publish 'elements', ->
-    Elements.find()
-
-Meteor.publish 'gameLogs', ->
-    GameLogs.find()
-
-Meteor.publish 'buffs', ->
-    Buffs.find()
