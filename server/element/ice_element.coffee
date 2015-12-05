@@ -1,5 +1,10 @@
 class @IceElement extends Element
 
+    messages: [
+        'заморозил лицо',
+        'кинул снежком в голову'
+    ]
+
     element: 'ice'
 
     name: 'Лёд'

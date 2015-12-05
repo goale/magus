@@ -30,7 +30,7 @@ class GameLogic
         turns = {}
 
         _.each game.turns, (turn, player) ->
-            turns[player] = ElementFactory.new turn.element, player
+            turns[player] = ElementFactory.new turn.element, game._id, player
 
         _.each game.board, (stats, player) ->
             enemy = GameUtils.getOpponent game, player
@@ -42,46 +42,49 @@ class GameLogic
         return turns
 
     ###
-    # calculate round result, apply buffs, and choose a winner
+    # calculate rutns result and update stats
     # @param {Object} game
     ###
     calculateTurnsResult: (gameId, turns) ->
-        logs = []
+        Meteor.setTimeout =>
+                result = ElementFactory.match turns
+                @updateStats gameId, result
+            , 2000
 
+
+    ###
+    # update turns/game results
+    # @param {int} gameId
+    # @param {Object} round result
+    ###
+    updateStats: (gameId, result) ->
         game = Games.findOne gameId
-
-        result = ElementFactory.match turns
+        fields = {}
 
         if result.tie? and result.tie
-            logs.push(GameLog.add game, 'tie', result)
+            Meteor.call 'log', gameId, "Никто никого не ударил"
         else
-            # update health
-            game.board[result.enemy].health -= result.damage
+            # reduce enemy's health
+            fields["board.#{result.enemy}.health"] = game.board[result.enemy].health - result.damage
+
             # set buffs
             if result.isCritical
                 if result.buff is 'self'
-                    game.board[result.player].buff = result.element
+                    fields["board.#{result.player}.buff"] = result.element
                 else
-                    game.board[result.enemy].buff = result.element
+                    fields["board.#{result.enemy}.buff"] = result.element
 
-            # log damage
-            logs.push(GameLog.add game, 'damage', result)
+            if fields["board.#{result.enemy}.health"] <= 0
+                fields.inProgress = no
+                fields.finished = new Date
+                fields.winner = result.player
 
-            # choose a winner
-            if game.board[result.enemy].health <= 0
-                game.inProgress = no
-                game.finished = new Date
-                game.winner = result.player
-
-                logs.push(GameLog.add game, 'winner', result)
+                winner = GameUtils.getNickname result.player
+                Meteor.call 'log', gameId, "#{winner} оказался сильнее и победил"
 
         # flush turns
-        game.turns = {}
+        fields["turns"] = {}
 
-        game.logs = _.union game.logs, logs
-
-        Meteor.setTimeout ->
-                Meteor.call 'updateGame', game
-            , 1000
+        Meteor.call 'updateFields', gameId, fields
 
 @Magus = new GameLogic

@@ -1,5 +1,10 @@
 class @AirElement extends Element
 
+    messages: [
+        'сдул воздушным потоком',
+        'ударил с вертушки ветром'
+    ]
+
     element: 'air'
 
     name: 'Воздух'

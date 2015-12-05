@@ -8,13 +8,10 @@ Meteor.methods
         # both players made a turn, so calculate round result
         # with 2 seconds delay for interactivity
         if turns is 2
-
-            # TODO: apply buffs
-            result = Magus.applyBuffs game
-
             Meteor.setTimeout ->
+                    result = Magus.applyBuffs game
                     Magus.calculateTurnsResult game._id, result
-                , 3000
+                , 1000
 
     # update player turns when player hits an attack button
     updateTurns: (gameId, turns) ->
@@ -33,5 +30,10 @@ Meteor.methods
     updateGame: (game) ->
         Games.update game._id, game
 
-    updateField: (gameId, field) ->
+    updateFields: (gameId, field) ->
         Games.update gameId, { $set: field }
+
+    log: (gameId, log) ->
+        # TODO: write elapsed time instead of date
+        time = new Date()
+        Games.update gameId, { $push: { logs: { time: time, message: log } } }

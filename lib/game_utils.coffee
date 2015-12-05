@@ -1,4 +1,8 @@
 class @GameUtils
+    # get username by id
+    @getNickname: (id) ->
+        Meteor.users.findOne(id).username
+
     # get enemy id
     @getOpponent: (game, playerId = false) ->
         if not playerId then playerId = Meteor.userId()

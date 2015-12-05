@@ -12,7 +12,7 @@ class @ElementFactory
 
     # Creates an Element object based on element type
     # and binds it to player
-    @new: (element, playerId) ->
+    @new: (element, gameId, playerId) ->
         switch element
             when 'fire' then el = new FireElement
             when 'water' then el = new WaterElement
@@ -20,6 +20,7 @@ class @ElementFactory
             when 'earth' then el = new EarthElement
             when 'air' then el = new AirElement
 
+        el.setGame gameId
         el.setPlayer playerId
 
         return el

@@ -1,5 +1,10 @@
 class @EarthElement extends Element
 
+    messages: [
+        'кинул булыжник в голову',
+        'закопал'
+    ]
+
     element: 'earth'
 
     name: 'Земля'

@@ -5,7 +5,7 @@ class @Buff
         @gameId = id
 
     apply: (turns, player, enemy) ->
-        field = {}
+        fields = {}
 
         game = Games.findOne @gameId
         health = game.board[player].health
@@ -18,14 +18,21 @@ class @Buff
             # increase player attack
             when 'power' then turns[player].power += @power
             # heal the player
-            when 'heal' then field["board.#{player}.health"] = health + @power
+            when 'heal' then fields["board.#{player}.health"] = health + @power
             # additional damage to player
-            when 'attack' then field["board.#{player}.health"] = health - @power
+            when 'attack' then fields["board.#{player}.health"] = health - @power
 
-        field["board.#{player}.buff"] = null
+        fields["board.#{player}.buff"] = null
 
-        Meteor.call 'updateField', @gameId, field
+        Meteor.call 'updateFields', @gameId, fields
 
-        # TODO: add buff info to log
+        Meteor.call 'log', @gameId, @getLogMessage(player)
 
         return turns
+
+    getLogMessage: (player) ->
+        player = GameUtils.getNickname player
+
+        if @on is 'self' then action = 'применил' else action = 'почувствовал на себе'
+
+        return "#{player} #{action} #{@name}"
