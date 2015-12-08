@@ -1,9 +1,12 @@
 Template.regeesterPage.helpers({
     hasError: function() {
-        return Logeen.hasError();
+        return Logeen.hasError('Signup');
     },
     error: function() {
-        return Logeen.getError();
+        return Logeen.getError('Signup');
+    },
+    fields: function() {
+        return Logeen.getFields();
     }
 });
 

@@ -1,9 +1,9 @@
 Template.logeenPage.helpers({
     hasError: function() {
-        return Logeen.hasError();
+        return Logeen.hasError('Login');
     },
     error: function() {
-        return Logeen.getError();
+        return Logeen.getError('Login');
     }
 });
 

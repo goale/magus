@@ -1,14 +1,15 @@
+var KEY_PREFIX = 'Logeen.';
+
+var ERROR = 'Error.';
+
+var FIELDS = 'Fields.'
+
 /**
  * Simple authentification for meteor
  * @namespace Logeen
  * @author Alex Goncharov
  */
 Logeen = {
-    /**
-     * @var LOGEEN_ERROR Session key for login errors
-     */
-    LOGEEN_ERROR: 'logeenError',
-
     fields: { profile: {} }
 };
 
@@ -19,8 +20,8 @@ Logeen = {
 Logeen.configure = function(config) {
     this.config = config || {};
 
-    if (!_.isUndefined(this.config.profile)) {
-        this.fields.profile = _.extend(this.fields.profile, this.config.profile);
+    if (!_.isUndefined(this.config.customUserFields)) {
+        this.fields.profile = _.extend(this.fields.profile, this.config.customUserFields);
     }
 };
 
@@ -48,11 +49,16 @@ Logeen.login = function() {
     }
 };
 
+/**
+ * Meteor login wrapper with custom logic
+ * @param {String} username
+ * @param {String} password
+ */
 Logeen.loginWithCredentials = function(username, password) {
     var self = this;
     Meteor.loginWithPassword(username, password, function(err) {
         if (err) {
-            self.setError('Неправильный логин/пароль');
+            self.setError('Login', 'Неправильный логин/пароль');
         } else {
             if (self.config.onLoginSuccess !== null
                 && self.config.onLoginSuccess instanceof Function) {
@@ -62,12 +68,15 @@ Logeen.loginWithCredentials = function(username, password) {
     });
 };
 
+/**
+ * Create new user and login into a game
+ */
 Logeen.register = function() {
     var self = this;
     if (this.validateRegistration()) {
         Meteor.call('registerUser', this.fields, function(err) {
             if (err) {
-                self.setError('Произошла ошибка при регистрации пользователя');
+                self.setError('Signup', 'Произошла ошибка при регистрации пользователя');
             } else {
                 self.loginWithCredentials(
                     self.fields.username,
@@ -89,27 +98,33 @@ Logeen.validateRegistration = function() {
     var passwordMatch = this.template.find('input[name="password-confirm"]').value,
         nickname = this.template.find('input[name="nickname"]').value;
 
+    // save fields
+    this.saveFields({
+        username: this.fields.username,
+        nickname: nickname
+    });
+
     // check if fields are not empty
     if (this.fields.username === '' || this.fields.password === '' || passwordMatch === '') {
-        this.setError('Не заполнено одно из полей');
+        this.setError('Signup', 'Не заполнено одно из полей');
         return false;
     }
 
     // password is too short
     if (this.fields.password.length < 6) {
-        this.setError('Пароль слишком короткий');
+        this.setError('Signup', 'Пароль слишком короткий');
         return false;
     }
 
     // passwords mismatch
     if (this.fields.password !== passwordMatch) {
-        this.setError('Пароли не совпадают');
+        this.setError('Signup', 'Пароли не совпадают');
         return false;
     }
 
     // check if user exists
     if (Meteor.users.find({ username: this.fields.username }).count() > 0) {
-        this.setError('Пользователь уже существует');
+        this.setError('Signup', 'Пользователь уже существует');
         return false;
     }
 
@@ -124,6 +139,21 @@ Logeen.validateRegistration = function() {
 };
 
 /**
+ * Save non-private fields like login or nickname to show after failed registration
+ * @param {Object} fields
+ */
+Logeen.saveFields = function(fields) {
+    Session.set(KEY_PREFIX + FIELDS, fields);
+};
+
+/**
+ * Get saved fields
+ */
+Logeen.getFields = function() {
+    return Session.get(KEY_PREFIX + FIELDS);
+};
+
+/**
  * Simple login fields validation (type and emptiness checking)
  * @return {boolean} true if validation succeed
  */
@@ -133,7 +163,7 @@ Logeen.validateLogin = function() {
 
     // check if fields are not empty
     if (this.username === '' || this.password === '') {
-        this.setError('Не заполнено одно из полей');
+        this.setError('Login', 'Не заполнено одно из полей');
         return false;
     }
 
@@ -149,24 +179,24 @@ Logeen.validateLogin = function() {
  * @param {String} msg
  * @throws Error
  */
-Logeen.setError = function(msg) {
+Logeen.setError = function(type, msg) {
     if (msg === '') {
         throw new Error('Logeen', 'Cannot set empty error message');
     }
 
-    Session.set(this.LOGEEN_ERROR, msg);
+    Session.set(KEY_PREFIX + ERROR + type, msg);
 };
 
 /**
  * @return {boolean} true if error exists
  */
-Logeen.hasError = function() {
-    return typeof Session.get(this.LOGEEN_ERROR) !== 'undefined';
+Logeen.hasError = function(type) {
+    return typeof Session.get(KEY_PREFIX + ERROR + type) !== 'undefined';
 }
 
 /**
  * @return {String} error
  */
-Logeen.getError = function() {
-    return Session.get(this.LOGEEN_ERROR);
+Logeen.getError = function(type) {
+    return Session.get(KEY_PREFIX + ERROR + type);
 }

@@ -1,6 +1,6 @@
 Logeen.configure
     loginAfterRegistration: yes
-    profile:
+    customUserFields:
         wins: 0
         loses: 0
         ties: 0
