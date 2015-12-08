@@ -1,0 +1,12 @@
+<template name="logeenPage">
+    {{#if hasError}}
+        {{ error }}
+    {{/if}}
+    <div class="b-login-form">
+        <form>
+            <input type="text" name="username"><br>
+            <input type="password" name="password"><br>
+            <button>Войти</button>
+        </form>
+    </div>
+</template>
