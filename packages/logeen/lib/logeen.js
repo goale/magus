@@ -5,9 +5,11 @@
  */
 Logeen = {
     /**
-     * @var SESSION_LOGIN_ERROR Session key for login errors
+     * @var LOGEEN_ERROR Session key for login errors
      */
-    SESSION_LOGIN_ERROR: 'loginError'
+    LOGEEN_ERROR: 'logeenError',
+
+    fields: { profile: {} }
 };
 
 /**
@@ -16,6 +18,10 @@ Logeen = {
  */
 Logeen.configure = function(config) {
     this.config = config || {};
+
+    if (!_.isUndefined(this.config.profile)) {
+        this.fields.profile = _.extend(this.fields.profile, this.config.profile);
+    }
 };
 
 /**
@@ -37,24 +43,84 @@ Logeen.init = function(template) {
  * Login attempt with some validation
  */
 Logeen.login = function() {
-    var self = this;
-
     if (this.validateLogin()) {
-        Meteor.loginWithPassword(
-            this.username.value,
-            this.password.value,
-            function(err) {
-                if (err) {
-                    self.setLoginError('Неправильный логин/пароль');
-                } else {
-                    if (self.config.onLoginSuccess !== null
-                        && self.config.onLoginSuccess instanceof Function) {
-                        self.config.onLoginSuccess();
-                    }
-                }
-            }
-        );
+        this.loginWithCredentials(this.username, this.password);
     }
+};
+
+Logeen.loginWithCredentials = function(username, password) {
+    var self = this;
+    Meteor.loginWithPassword(username, password, function(err) {
+        if (err) {
+            self.setError('Неправильный логин/пароль');
+        } else {
+            if (self.config.onLoginSuccess !== null
+                && self.config.onLoginSuccess instanceof Function) {
+                self.config.onLoginSuccess();
+            }
+        }
+    });
+};
+
+Logeen.register = function() {
+    var self = this;
+    if (this.validateRegistration()) {
+        Meteor.call('registerUser', this.fields, function(err) {
+            if (err) {
+                self.setError('Произошла ошибка при регистрации пользователя');
+            } else {
+                self.loginWithCredentials(
+                    self.fields.username,
+                    self.fields.password
+                );
+            }
+        });
+    }
+};
+
+/**
+ * Regitration fields validation (type, existence and emptiness checking)
+ * @return {boolean} true if validation succeed
+ */
+Logeen.validateRegistration = function() {
+    this.fields.username = this.template.find('input[name="username"]').value;
+    this.fields.password = this.template.find('input[name="password"]').value;
+
+    var passwordMatch = this.template.find('input[name="password-confirm"]').value,
+        nickname = this.template.find('input[name="nickname"]').value;
+
+    // check if fields are not empty
+    if (this.fields.username === '' || this.fields.password === '' || passwordMatch === '') {
+        this.setError('Не заполнено одно из полей');
+        return false;
+    }
+
+    // password is too short
+    if (this.fields.password.length < 6) {
+        this.setError('Пароль слишком короткий');
+        return false;
+    }
+
+    // passwords mismatch
+    if (this.fields.password !== passwordMatch) {
+        this.setError('Пароли не совпадают');
+        return false;
+    }
+
+    // check if user exists
+    if (Meteor.users.find({ username: this.fields.username }).count() > 0) {
+        this.setError('Пользователь уже существует');
+        return false;
+    }
+
+    this.fields.profile.nickname = nickname || this.fields.username;
+
+    Match.test(this.fields.username, String);
+    Match.test(this.fields.profile.nickname, String);
+    Match.test(this.fields.password, [String, Number]);
+    Match.test(passwordMatch, [String, Number]);
+
+    return true;
 };
 
 /**
@@ -62,18 +128,18 @@ Logeen.login = function() {
  * @return {boolean} true if validation succeed
  */
 Logeen.validateLogin = function() {
-    this.username = this.template.find(this.template.find('input[name="username"]'));
-    this.password = this.template.find(this.template.find('input[name="password"]'));
+    this.username = this.template.find('input[name="username"]').value;
+    this.password = this.template.find('input[name="password"]').value;
 
     // check if fields are not empty
-    if (this.username.value === '' || this.password.value === '') {
-        this.setLoginError('Не заполнено одно из полей');
+    if (this.username === '' || this.password === '') {
+        this.setError('Не заполнено одно из полей');
         return false;
     }
 
     // Sanity check for user input, throws error
-    Match.test(this.username.value, String);
-    Match.test(this.password.value, [String, Number]);
+    Match.test(this.username, String);
+    Match.test(this.password, [String, Number]);
 
     return true;
 };
@@ -83,24 +149,24 @@ Logeen.validateLogin = function() {
  * @param {String} msg
  * @throws Error
  */
-Logeen.setLoginError = function(msg) {
+Logeen.setError = function(msg) {
     if (msg === '') {
         throw new Error('Logeen', 'Cannot set empty error message');
     }
 
-    Session.set(this.SESSION_LOGIN_ERROR, msg);
+    Session.set(this.LOGEEN_ERROR, msg);
 };
 
 /**
  * @return {boolean} true if error exists
  */
 Logeen.hasError = function() {
-    return typeof Session.get(this.SESSION_LOGIN_ERROR) !== 'undefined';
+    return typeof Session.get(this.LOGEEN_ERROR) !== 'undefined';
 }
 
 /**
  * @return {String} error
  */
 Logeen.getError = function() {
-    return Session.get(this.SESSION_LOGIN_ERROR);
+    return Session.get(this.LOGEEN_ERROR);
 }

@@ -12,15 +12,25 @@ Package.describe({
 
 Package.onUse(function(api) {
   api.versionsFrom('1.2.1');
-  api.use(['ecmascript', 'check', 'accounts-password', 'templating'], 'client');
+  api.use(['ecmascript', 'check', 'templating'], 'client');
+  api.use(['accounts-password'], ['client', 'server']);
+  
   api.addFiles([
+      'lib/logeen_config.js',
       'lib/logeen.js',
   ], ['client', 'server']);
 
   api.addFiles([
+      'logeen_methods.js',
+      'logeen_server.js'
+  ], 'server');
+
+  api.addFiles([
       'logeen_page.html',
+      'regeester_page.html',
 
       'logeen_page.js',
+      'regeester_page.js',
   ], 'client');
 
   api.export('Logeen', ['client', 'server']);

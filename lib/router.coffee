@@ -9,6 +9,9 @@ Router.route '/', ->
 Router.route '/login', ->
     @render 'login'
 
+Router.route '/signup', ->
+    @render 'register'
+
 Router.route '/games/:_id', ->
     if @ready()
         game = Games.findOne _id: @params._id
@@ -19,4 +22,4 @@ Router.onBeforeAction ->
             @redirect '/login'
         else
             @next()
-    , except: 'login'
+    , except: ['login', 'signup']
