@@ -17,22 +17,16 @@ Meteor.methods
     updateTurns: (gameId, turns) ->
         Games.update gameId, { $set: { turns: turns } }
 
-    # update player stats
-    updateBoard: (gameId, board) ->
-        Games.update gameId, { $set: { board: board } }
-
     # initialize a new game
     createGame: (opponentId) ->
         game = GameFactory.create [Meteor.userId(), opponentId]
         Games.insert game
 
-    # update game document
-    updateGame: (game) ->
-        Games.update game._id, game
-
+    # update game fields
     updateFields: (gameId, field) ->
         Games.update gameId, { $set: field }
 
+    # prepend game events to a game log
     log: (gameId, log) ->
         game = Games.findOne gameId
 
@@ -46,6 +40,7 @@ Meteor.methods
             }
         }
 
+    # update user scores
     updateScores: (winner, loser, tie = no) ->
         if tie
             winnerField = loserField =
@@ -63,6 +58,6 @@ Meteor.methods
         )
 
         Meteor.users.update(
-            { _id: loser }, 
+            { _id: loser },
             { $inc: loserField }
         )
