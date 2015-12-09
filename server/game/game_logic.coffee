@@ -14,8 +14,6 @@ class GameLogic
 
         game.turns[userId] = { _id: userId, element: attack }
 
-        # TODO: add to log
-
         Meteor.call 'updateTurns', game._id, game.turns
 
         return _.size game.turns
@@ -67,6 +65,8 @@ class GameLogic
                 fields.winner = player
                 tie = no
 
+        loser = GameUtils.getOpponent game, fields.winner
+
         Meteor.call 'updateFields', gameId, fields
 
         if tie
@@ -75,6 +75,7 @@ class GameLogic
             winner = GameUtils.getNickname fields.winner
             Meteor.call 'log', gameId, "#{winner} оказался сильнее и победил в жесточайшей схватке"
 
-        # TODO: update scoring system
+        # update user scores
+        Meteor.call 'updateScores', fields.winner, loser, tie
 
 @Magus = new GameLogic
