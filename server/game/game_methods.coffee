@@ -45,3 +45,24 @@ Meteor.methods
                 }
             }
         }
+
+    updateScores: (winner, loser, tie = no) ->
+        if tie
+            winnerField = loserField =
+                "profile.ties": 1
+
+        else
+            winnerField =
+                "profile.wins": 1
+            loserField =
+                "profile.loses": 1
+
+        Meteor.users.update(
+            { _id: winner },
+            { $inc: winnerField }
+        )
+
+        Meteor.users.update(
+            { _id: loser }, 
+            { $inc: loserField }
+        )
