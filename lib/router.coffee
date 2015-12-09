@@ -1,5 +1,8 @@
+Router.plugin 'dataNotFound', { notFoundTemplate: 'notFound' }
+
 Router.configure
     layoutTemplate: 'layout'
+
     waitOn: ->
         Meteor.subscribe 'games'
 
@@ -13,9 +16,10 @@ Router.route '/signup', ->
     @render 'register'
 
 Router.route '/games/:_id', ->
-    if @ready()
-        game = Games.findOne _id: @params._id
-        @render 'gameBoard', data: game
+        if @ready()
+            @render 'gameBoard'
+    , data: ->
+        return Games.findOne _id: @params._id
 
 Router.onBeforeAction ->
         if not Meteor.userId()
