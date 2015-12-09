@@ -1,0 +1,12 @@
+<template name ="regeesterPage">
+    {{#if hasError}}
+        {{error}}
+    {{/if}}
+    <form>
+        <input type="text" name="username" placeholder="Логин" value="{{fields.username}}"><br>
+        <input type="text" name="nickname" placeholder="Псевдоним" value={{fields.nickname}}><br>
+        <input type="password" name="password" placeholder="Пароль"><br>
+        <input type="password" name="password-confirm" placeholder="Подтвердите пароль"><br>
+        <button>Зарегистрироваться</button>
+    </form>
+</template>
